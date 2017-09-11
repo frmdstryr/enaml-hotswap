@@ -3,8 +3,6 @@ from enaml.widgets.api import *
 
 enamldef Main(Window): view:
     Container:
-        Label:
+        PushButton:
             text = "child 1"
-        Label:
-            text = "child 2"
 

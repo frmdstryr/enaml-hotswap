@@ -47,15 +47,8 @@ class EnamlReloader(autoreload.ModuleReloader):
             super(EnamlReloader, self).check(check_all=check_all, do_reload=do_reload)
 
 
-def update_member(old, new):
-    """ Update an atom member """
-    print("TODO: Update member {} {}".format(old, new))
-    pass
-
-
 def update_atom_members(old, new):
     """ Update an atom member """
-    print("TODO: Update declarative {} {}".format(old, new))
     old_keys = old.members().keys()
     new_keys = new.members().keys()
     for key in old_keys:
@@ -88,7 +81,6 @@ def update_atom_members(old, new):
 
 def update_class_by_type(old, new):
     """ Update declarative classes or fallback on default """
-    print("Update class by type {}, {}".format(old, new))
     autoreload.update_class(old, new)
     if isinstance2(old, new, AtomMeta):
         update_atom_members(old, new)
@@ -110,7 +102,18 @@ class Hotswapper(autoreload.Autoreloader):
         self.post_execute()
 
     def update(self, old, new=None):
-        """ Update given view declaration with new declaration"""
+        """ Update given view declaration with new declaration
+
+        Parameters
+        -----------
+        old: Declarative
+            The existing view instance that needs to be updated
+        new: Declarative or None
+            The new or reloaded view instance to that will be used to update the
+            existing view. If none is given, one of the same type as old will be
+            created and initialized with no attributes passed.
+
+        """
 
         #: Create and initialize
         if not new:
@@ -118,7 +121,7 @@ class Hotswapper(autoreload.Autoreloader):
             if not new.is_initialized:
                  new.initialize()
 
-        #: Update attrs, funcs, and bindings
+        #: Update attrs, funcs, and bindings of this node
         self.update_attrs(old, new)
         self.update_funcs(old, new)
         self.update_bindings(old, new)
@@ -151,25 +154,55 @@ class Hotswapper(autoreload.Autoreloader):
             if not c.is_destroyed:
                 c.destroy()
 
-
     def update_attrs(self, old, new):
-        #print("TODO: Update attrs {} {}".format(old, new))
+        """ Update any `attr` members.
+
+            Parameters
+            -----------
+            old: Declarative
+                The existing view instance that needs to be updated
+            new: Declarative
+                The new view instance that should be used for updating
+
+        """
+        #: Copy in storage from new node
         if new._d_storage:
             old._d_storage = new._d_storage
         #: TODO: Cannot add new attrs!
 
     def update_funcs(self, old, new):
+        """ Update any `func` definitions.
+
+            Parameters
+            -----------
+            old: Declarative
+                The existing view instance that needs to be updated
+            new: Declarative
+                The new view instance that should be used for updating
+
+        """
         print("TODO: Update funcs {} {}".format(old, new))
         #if new._d_storage:
         #    old._d_storage = new._d_storage
 
     def update_bindings(self, old, new):
-        print("TODO: Update bindings {} {}".format(old, new))
+        """ Update any enaml operator bindings.
+
+            Parameters
+            -----------
+            old: Declarative
+                The existing view instance that needs to be updated
+            new: Declarative
+                The new view instance that should be used for updating
+
+        """
+        #: Copy the Expression Engine
         if new._d_engine:
             old._d_engine = new._d_engine
             engine = old._d_engine
 
-            #: Rerun any read expressions
+            #: Rerun any read expressions which should trigger
+            #: any dependent writes
             for k in engine._handlers.keys():
                 try:
                     engine.update(old, k)

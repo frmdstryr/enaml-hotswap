@@ -357,10 +357,8 @@ def test_attr_add_change():
             assert tv1.get_member('awesome') == True
 
 
-def test_append_child_change():
-    """ Test does not work because we can't add a member
-        at runtime (get an attr error).
-    """
+def test_append_child():
+    """ """
     for test in run_hotswap_test(DEFAULT_TIME,
                                  original="""
             from enaml.widgets.api import *
@@ -391,6 +389,70 @@ def test_append_child_change():
             tv1 = container.children[0]
             tv2 = container.children[1]
             assert tv1.text == "child 1" and tv2.text == "child 2"
+
+
+def test_remove_child():
+    """ """
+    for test in run_hotswap_test(DEFAULT_TIME,
+                                 original="""
+            from enaml.widgets.api import *
+
+            enamldef Main(Window): view:
+                Container:
+                    Label:
+                        text = "child 1"
+                    Label:
+                        text = "child 2"
+            """,
+                                 modified="""
+            from enaml.widgets.api import *
+
+            enamldef Main(Window): view:
+                Container:
+                    Label:
+                        text = "child 2"
+
+            """,
+                                 initial_state={}):
+
+        container = test.view.children[0]
+        if not test.reloaded:
+            assert len(container.children) == 2
+        else:
+            assert len(container.children) == 1
+            tv1 = container.children[0]
+            assert tv1.text == "child 2"
+
+
+
+def test_swap_child():
+    """ """
+    for test in run_hotswap_test(DEFAULT_TIME+2,
+                                 original="""
+            from enaml.widgets.api import *
+
+            enamldef Main(Window): view:
+                Container:
+                    Label:
+                        text = "child 1"
+            """,
+                                 modified="""
+            from enaml.widgets.api import *
+
+            enamldef Main(Window): view:
+                Container:
+                    PushButton:
+                        text = "child 1"
+
+            """,
+                                 initial_state={}):
+
+        container = test.view.children[0]
+        if not test.reloaded:
+            assert container.children[0].__class__.__name__ == 'Label'
+        else:
+            assert len(container.children) == 1
+            assert container.children[0].__class__.__name__ == 'PushButton'
 
 
 def run_hotswap_test(enaml_sleep, original, modified, handler=None, initial_state=None):

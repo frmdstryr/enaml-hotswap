@@ -163,6 +163,9 @@ class ModuleReloader(Atom):
     #: Source extension types
     source_exts = List(default=['.py'])
 
+    #: Print when a module is reloaded
+    debug = Bool()
+
     def __init__(self, *args, **kwargs):
         super(ModuleReloader, self).__init__(*args, **kwargs)
 
@@ -265,7 +268,8 @@ class ModuleReloader(Atom):
             # If we've reached this point, we should try to reload the module
             if do_reload:
                 try:
-                    print("Reloading {}".format(m))
+                    if self.debug:
+                        print("Reloading {}".format(m))
                     superreload(m, reload, self.old_objects)
                     if py_filename in self.failed:
                         del self.failed[py_filename]

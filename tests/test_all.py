@@ -474,7 +474,7 @@ def run_hotswap_test(enaml_sleep, original, modified, handler=None, initial_stat
         #: Create our hotswapper
         #: Must be done after importing our view!
         hotswapper = Hotswapper()
-        hotswapper.autoreload('2')
+        #hotswapper.autoreload('2')
 
         with close_all_windows(qt_app):
             window = view.Main()
@@ -500,14 +500,12 @@ def run_hotswap_test(enaml_sleep, original, modified, handler=None, initial_stat
             with hotswapper.active():
                 #: We can run code here and it'll save any imported modules
                 #: without having to do a full check
-                pass
+                #: Update our module with the test so we can access the state (if needed)
+                view.test = test
+                test.reloaded = True
 
-            #: Update our module with the test so we can access the state (if needed)
-            view.test = test
-            test.reloaded = True
-
-            #: Update with our new code
-            hotswapper.update(window)
+                #: Update with our new code
+                hotswapper.update(window)
 
             #: Wait again they should magically update!
             while reload_sleep > 0 and test.result and not test.done:

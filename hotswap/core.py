@@ -9,11 +9,9 @@ Created on Sept 10, 2017
 
 @author: jrm
 '''
-import sys
 import enaml
-from atom.api import AtomMeta, Instance, Subclass, set_default
+from atom.api import AtomMeta, Bool, set_default
 from enaml.core.declarative import Declarative
-from enaml.core.declarative_meta import DeclarativeMeta
 from contextlib import contextmanager
 
 from . import autoreload
@@ -21,16 +19,9 @@ from .autoreload import isinstance2
 
 
 class EnamlReloader(autoreload.ModuleReloader):
-    """ A class that takes two declarative trees
-        and updates the first (old) with the second (new)
+    """ A ModuleReloader that supports reloading `.enaml` files.
 
     """
-
-    #: Original declarative View
-    original = Instance(Declarative)
-
-    #: Declarative view after reloading
-    reloaded = Subclass(Declarative)
 
     #: Whether this reloader is enabled
     enabled = set_default(True)
@@ -91,9 +82,37 @@ autoreload.UPDATE_RULES[0] = (lambda a, b: isinstance2(a, b, type), update_class
 
 
 class Hotswapper(autoreload.Autoreloader):
+    """ A reloader that can update an enaml declarative view with a reloaded
+        version.
+
+        When a change occurs on a file use:
+
+        Example
+        -----------
+
+        hotswap = Hotswapper()
+
+        #: Make a change before entering active state
+        #: --- some source file change occurs here ---
+
+        #: Then run
+        with hotswap.active():
+            hotswap.update(view)
+
+
+
+    """
+    #: Print debug statements
+    debug = Bool()
 
     def _default__reloader(self):
-        return EnamlReloader(check_all=False)
+        #: Initial check
+        return EnamlReloader(check_all=False, debug=self.debug)
+
+    def __init__(self, mode='2'):
+        """ Initialize the reloader then configure autoreload right away"""
+        super(Hotswapper, self).__init__()
+        self.autoreload(mode)
 
     @contextmanager
     def active(self):
@@ -181,7 +200,8 @@ class Hotswapper(autoreload.Autoreloader):
                 The new view instance that should be used for updating
 
         """
-        print("TODO: Update funcs {} {}".format(old, new))
+        pass
+        #print("TODO: Update funcs {} {}".format(old, new))
         #if new._d_storage:
         #    old._d_storage = new._d_storage
 
